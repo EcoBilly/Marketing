@@ -72,12 +72,48 @@
 
   // 맞팔 안 한 계정
   $('days').addEventListener('input', render);
+  var selected = {};
+  var shown = [];
+  function applyTo(names, act) {
+    names.forEach(function (u) {
+      if (act === 'unf') C.markUnfollowed(state, u);
+      if (act === 'keep') state.whitelist[u] = true;
+      delete selected[u];
+    });
+    save(); render();
+  }
   $('nfbBody').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    var u = b.dataset.u;
-    if (b.dataset.act === 'unf') C.markUnfollowed(state, u);
-    if (b.dataset.act === 'keep') state.whitelist[u] = true;
-    save(); render();
+    applyTo([b.dataset.u], b.dataset.act);
+  });
+  $('nfbBody').addEventListener('change', function (e) {
+    var c = e.target; if (!c.dataset.sel) return;
+    if (c.checked) selected[c.dataset.sel] = true; else delete selected[c.dataset.sel];
+    c.closest('.item').classList.toggle('sel', c.checked);
+    updateSel();
+  });
+  $('selAll').addEventListener('change', function (e) {
+    var on = e.target.checked;
+    shown.forEach(function (u) { if (on) selected[u] = true; else delete selected[u]; });
+    render();
+  });
+  function selectedList() { return shown.filter(function (u) { return selected[u]; }); }
+  function updateSel() {
+    var n = selectedList().length;
+    $('selCount').textContent = n + '명 선택';
+    $('bulkUnf').disabled = $('bulkKeep').disabled = n === 0;
+    $('selAll').checked = n > 0 && n === shown.length;
+    $('selAll').indeterminate = n > 0 && n < shown.length;
+  }
+  $('bulkUnf').addEventListener('click', function () {
+    var list = selectedList();
+    if (!confirm(list.length + '명을 언팔 완료로 기록할까요?\n(인스타그램에서 실제로 언팔하지는 않습니다. 언팔은 인스타에서 직접 해 주세요.)')) return;
+    applyTo(list, 'unf');
+  });
+  $('bulkKeep').addEventListener('click', function () {
+    var list = selectedList();
+    if (!confirm(list.length + '명을 유지 목록에 넣을까요? 앞으로 이 목록에 나오지 않습니다.')) return;
+    applyTo(list, 'keep');
   });
 
   // 후보 검사
@@ -143,11 +179,18 @@
     $('nfbMsg').textContent = state.lastImportAt
       ? list.length + '명 · 마지막 데이터: ' + fmt(state.lastImportAt) + ' (최신 맞팔 여부를 보려면 데이터를 새로 받아 불러오세요)'
       : '먼저 ① 데이터 불러오기를 해 주세요.';
+    shown = list.map(function (x) { return x.username; });
+    Object.keys(selected).forEach(function (u) { if (shown.indexOf(u) < 0) delete selected[u]; });
+    $('nfbBar').style.display = list.length ? '' : 'none';
     $('nfbBody').innerHTML = list.map(function (x) {
-      return '<tr><td>' + link(x.username) + '</td><td>' + fmt(x.firstFollowedAt) + '</td><td>' + x.days + '일</td><td>' +
-        '<button class="btn" data-act="unf" data-u="' + esc(x.username) + '">언팔 완료</button> ' +
-        '<button class="btn ghost" data-act="keep" data-u="' + esc(x.username) + '">유지</button></td></tr>';
+      var u = esc(x.username), on = !!selected[x.username];
+      return '<div class="item' + (on ? ' sel' : '') + '">' +
+        '<input type="checkbox" data-sel="' + u + '"' + (on ? ' checked' : '') + ' aria-label="@' + u + ' 선택">' +
+        '<div class="who">' + link(x.username) + '<div class="meta">' + fmt(x.firstFollowedAt) + ' 팔로우 · ' + x.days + '일 경과</div></div>' +
+        '<div class="acts"><button class="btn" data-act="unf" data-u="' + u + '">언팔 완료</button>' +
+        '<button class="btn ghost" data-act="keep" data-u="' + u + '">유지</button></div></div>';
     }).join('');
+    updateSel();
 
     var q = C.normalizeUsername($('search').value);
     var names = Object.keys(state.history).filter(function (u) { return state.history[u].firstFollowedAt && (!q || u.indexOf(q) >= 0); })
