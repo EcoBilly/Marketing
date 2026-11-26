@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>배달 통합 대시보드</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>🛵 배달 통합 대시보드</h1>
+      <span id="modeBadge" class="badge" hidden>MOCK · 샘플 데이터</span>
+    </div>
+    <form id="filters" class="filters" aria-label="조회 조건">
+      <div class="seg" role="radiogroup" aria-label="기간">
+        <button type="button" data-days="7">7일</button>
+        <button type="button" data-days="30" class="on">30일</button>
+        <button type="button" data-days="90">90일</button>
+      </div>
+      <label class="date">시작 <input type="date" id="from"></label>
+      <label class="date">종료 <input type="date" id="to"></label>
+      <fieldset class="plats" aria-label="플랫폼">
+        <label><input type="checkbox" name="platform" value="baemin" checked><i class="key s1"></i>배달의민족</label>
+        <label><input type="checkbox" name="platform" value="coupangeats" checked><i class="key s2"></i>쿠팡이츠</label>
+        <label><input type="checkbox" name="platform" value="mukkebi" checked><i class="key s3"></i>먹깨비</label>
+      </fieldset>
+    </form>
+  </header>
+
+  <main>
+    <div id="status" class="status" aria-live="polite"></div>
+
+    <section class="kpis" id="kpis" aria-label="핵심 지표"></section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>플랫폼별 매출 · 수수료 · 정산</h2>
+        <p class="sub">수수료 비중 = 수수료 합계 ÷ (음식 매출 + 배달팁). 부가세 포함.</p>
+      </div>
+      <div class="table-wrap"><table id="platformTable" class="num-table"></table></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>일별 매출</h2>
+        <p class="sub">음식 매출(배달팁 제외), 플랫폼별 누적</p>
+      </div>
+      <div class="legend" data-legend></div>
+      <div id="dailyChart" class="chart"></div>
+      <details class="tbl"><summary>표로 보기</summary><div class="table-wrap"><table id="dailyTable" class="num-table"></table></div></details>
+    </section>
+
+    <div class="grid2">
+      <section class="card">
+        <div class="card-head"><h2>시간대별 주문</h2><p class="sub">완료 주문 수 합계</p></div>
+        <div class="legend" data-legend></div>
+        <div id="hourlyChart" class="chart short"></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2>요일별 주문</h2><p class="sub">완료 주문 수 합계</p></div>
+        <div class="legend" data-legend></div>
+        <div id="weekdayChart" class="chart short"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>광고비 vs 매출</h2>
+        <p class="sub" id="adSub"></p>
+      </div>
+      <div id="adKpis" class="mini-kpis"></div>
+      <div class="grid2 tight">
+        <div><h3>일별 광고비</h3><div id="adSpendChart" class="chart short"></div></div>
+        <div><h3>같은 플랫폼 일별 매출</h3><div id="adSalesChart" class="chart short"></div></div>
+      </div>
+      <div class="table-wrap"><table id="adTable" class="num-table"></table></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head row">
+        <div>
+          <h2>통합 리뷰</h2>
+          <p class="sub" id="reviewSub"></p>
+        </div>
+        <div class="review-filters">
+          <label><input type="checkbox" id="onlyLow"> 낮은 별점만</label>
+          <label><input type="checkbox" id="onlyUnreplied"> 답글 없는 리뷰만</label>
+        </div>
+      </div>
+      <ul id="reviews" class="reviews"></ul>
+    </section>
+
+    <section class="card" id="mukkebiCard">
+      <div class="card-head">
+        <h2>먹깨비 데이터 가져오기</h2>
+        <p class="sub">먹깨비는 자동 연동 API가 없어서, 사장님 센터에서 내려받은 <b>주문내역 / 리뷰</b> 파일(CSV·XLSX)을 올립니다. 파일을 올리면 샘플 데이터 대신 실제 데이터를 씁니다.</p>
+      </div>
+      <div class="upload">
+        <label class="btn"><input type="file" id="mkbFile" accept=".csv,.tsv,.txt,.xlsx" multiple hidden>파일 선택</label>
+        <a class="link" href="samples/mukkebi_orders_sample.csv" download>주문 샘플 CSV</a>
+        <a class="link" href="samples/mukkebi_reviews_sample.csv" download>리뷰 샘플 CSV</a>
+        <button type="button" class="link danger" id="mkbClear">가져온 파일 모두 지우기</button>
+      </div>
+      <ul id="mkbFiles" class="files"></ul>
+    </section>
+
+    <footer class="foot">
+      배민·쿠팡이츠 데이터는 하이픈(Hyphen) API마켓 연동 기준이며, 계약 전에는 샘플 데이터로 동작합니다. 수수료율·배달비 샘플 값은 예시입니다.
+    </footer>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="status" hidden></div>
+  <script src="charts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

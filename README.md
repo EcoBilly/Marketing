@@ -23,3 +23,8 @@ node test/core.test.js
 ```
 - `core.js`: 데이터 해석과 계산 로직 (브라우저와 Node에서 모두 동작)
 - `app.js`: 화면 동작
+
+---
+
+## 🛵 delivery-hub (배달앱 통합 대시보드)
+배달의민족·쿠팡이츠·먹깨비 매출·정산·리뷰·광고비를 한 화면에서 보는 도구는 [`delivery-hub/`](delivery-hub/README.md) 폴더에 있습니다.
